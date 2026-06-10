@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { StateCreator } from 'zustand';
 import type { ElevatorRecord, FilterOptions } from '../types/elevator';
 
 interface ElevatorState {
@@ -17,15 +18,11 @@ const defaultFilters: FilterOptions = {
   anomalyType: '',
 };
 
-const createElevatorStore = (
-  set: (
-    partial:
-      | ElevatorState
-      | Partial<ElevatorState>
-      | ((state: ElevatorState) => ElevatorState | Partial<ElevatorState>),
-  ) => void,
-  get: () => ElevatorState,
-): ElevatorState => ({
+const createElevatorStore: StateCreator<
+  ElevatorState,
+  [],
+  [['zustand/persist', ElevatorState]]
+> = (set, get) => ({
   records: [],
   filters: defaultFilters,
   addRecord: (record) =>
@@ -53,11 +50,11 @@ const createElevatorStore = (
     }),
 });
 
-const withPersist = persist(createElevatorStore, {
-  name: 'elevator-records-storage',
-});
-
-export const useElevatorStore = create<ElevatorState>(withPersist);
+export const useElevatorStore = create<ElevatorState>()(
+  persist(createElevatorStore, {
+    name: 'elevator-records-storage',
+  }),
+);
 
 export const getFilteredRecords = (
   records: ElevatorRecord[],
